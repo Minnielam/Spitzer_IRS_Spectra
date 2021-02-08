@@ -1,4 +1,5 @@
-# water_megamasers
+# Spitzer IRS Specta
 
-Some Simple tools for spectral conversion
-a long way to go
+This is a simple tool for Spitzer data conversion
+
+Read Spitzer spectra from IPAC table type, resample them to the same wavelength range (optional), and write to new ascii table.
