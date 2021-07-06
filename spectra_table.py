@@ -18,6 +18,30 @@ class Spec():
         self.err = err
        
 
+
+    def deredshiftSpec(self, wave=None, redshift=None):
+
+        """
+        Resample 1D spectrum which contains wavelength, flux and error.
+
+        Parameters
+        ----------
+
+        wave: 'numpy.ndarray'
+               The wavelength of 1D spectrum
+
+        redshift: 'numpy.ndarray'
+               The redshift of 1D spectrum
+
+        """
+
+        self.wave = wave
+
+        newwave =  (self.wave/(1.0 + redshift)[:,None]).flatten()
+
+        return newwave
+
+
     def resampleSpec(self, wave=None, flux=None,err=None, startwave=None, endwave=None, num=None):
         
         """
@@ -71,7 +95,7 @@ class Spec():
         self.wave = file_in['wavelength']
         self.flux = file_in['flux_density']
         self.err = file_in['error']
-
+        
     def writeTxtData(self, filename=None, wave=None, flux=None, err=None):
 
         """
@@ -109,19 +133,41 @@ if __name__ == '__main__':
     path = '/Users/m.lam/MIR_H2/water_megamaser_H2/water_spectra/masers_spectra/'
     dirs = glob.glob(path+'**/' + 'enhanced/*.tbl')
 
+    path1 = '/Users/m.lam/MIR_H2/water_megamaser_H2/'
+    targetlist = 'full_table_3.csv'
+
+    
+    table_targetlist = pd.read_csv(path1 + targetlist)
+    z = table_targetlist['z']
+    aorkey = table_targetlist['Aorkey']
+    name = table_targetlist['SourceName']
+    
+    targetframe = {'aorkey': aorkey, 'name': name, 'z': z}
+    df_target = pd.DataFrame(targetframe, columns=['aorkey', 'name', 'z'])
+
     inputdata = Spec()
+
+    print('======= Start Resampling =======')
 
     for filename in dirs:
         if 'SPITZER_S5' in filename:
 
             inputdata.loadTxtData(filename)
 
-            output_wave, output_flux, output_err = inputdata.resampleSpec(inputdata.wave, inputdata.flux, inputdata.err, startwave=5, endwave=35, num=len(inputdata.wave))
+            select = df_target[(df_target['aorkey'].astype(str) == inputdata.key)]['z'].tolist()
 
-            print(output_wave.shape)
-            print(min(output_wave),max(output_wave))
-            print(min(inputdata.wave),max(inputdata.wave))
+            redshift = np.array(select)
+            newwave = inputdata.deredshiftSpec(inputdata.wave, redshift)
 
-            inputdata.writeTxtData(filename= path + 'test2/' + inputdata.key, wave=output_wave, flux=output_flux, err=output_err)
+            
+            output_wave, output_flux, output_err = inputdata.resampleSpec(newwave, np.array(inputdata.flux), np.array(inputdata.err), startwave=5.0, endwave=35.0, num=750)
+
+            print('Fitting Object AORKEY:', inputdata.key)
+            #print(min(output_wave),max(output_wave))
+            #print(min(inputdata.wave),max(inputdata.wave))
+
+            inputdata.writeTxtData(filename= path + 'resample_new/' + inputdata.key, wave=output_wave, flux=output_flux, err=output_err)
+
+    print('======= Resampling Process Done =======')
         
 
