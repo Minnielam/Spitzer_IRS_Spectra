@@ -7,6 +7,7 @@ from astropy.io import ascii
 import os
 import pandas as pd
 import glob
+from astropy.units import Unit
 
 
 class Spec():
@@ -118,7 +119,7 @@ class Spec():
         self.wave = wave
         self.flux = flux
         self.err = err
-        file_out = {'wavelength': self.wave, 'flux': self.flux, 'sigma': self.err}
+        file_out = {'#wavelength': self.wave, 'flux': self.flux, 'sigma': self.err}
         df_file_out = pd.DataFrame(file_out)
         df_file_out.to_csv(filename + '.ascii', sep=' ', index=0)
 
@@ -149,6 +150,9 @@ class Spec():
         self.err = err
         file_out = np.column_stack((self.wave, self.flux, self.err))
         tm = Table(file_out,names=['wavelength', 'flux', 'sigma'])
+        tm['wavelength'].unit = 'micron'
+        tm['flux'].unit = 'Jy'
+        tm['sigma'].unit = 'Jy'
         tm.write(filename + '.ecsv', overwrite=True, format='ascii.ecsv')
 
 
