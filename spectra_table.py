@@ -118,10 +118,42 @@ class Spec():
         self.wave = wave
         self.flux = flux
         self.err = err
-        file_out = {'# wave': self.wave, 'flux': self.flux, 'error': self.err}
+        file_out = {'wavelength': self.wave, 'flux': self.flux, 'sigma': self.err}
         df_file_out = pd.DataFrame(file_out)
-        df_file_out.to_csv(filename + '.ascii', sep='\t', index=0)
+        df_file_out.to_csv(filename + '.ascii', sep=' ', index=0)
+
+
+    def writeEcsvData(self, filename=None, wave=None, flux=None, err=None):
+
         
+        """
+        write output files in data with ecsv format
+
+        Parameters
+        ----------
+
+        filename: 'string'
+                  Name or Path of the input data table with ascii format.
+        wave: 'numpy.ndarray'
+              The wavelength of 1D spectrum
+        flux: 'numpy. ndarray'
+               The flux of 1D spectrum
+        err: 'numpy.ndarray'
+              The error of 1D spectrum
+
+        """
+
+
+        self.wave = wave
+        self.flux = flux
+        self.err = err
+        file_out = np.column_stack((self.wave, self.flux, self.err))
+        tm = Table(file_out,names=['wavelength', 'flux', 'sigma'])
+        tm.write(filename + '.ecsv', overwrite=True, format='ascii.ecsv')
+
+
+
+                
 
 
 
@@ -166,7 +198,11 @@ if __name__ == '__main__':
             #print(min(output_wave),max(output_wave))
             #print(min(inputdata.wave),max(inputdata.wave))
 
-            inputdata.writeTxtData(filename= path + 'resample_new/' + inputdata.key, wave=output_wave, flux=output_flux, err=output_err)
+            #inputdata.writeTxtData(filename= path + 'resample_new/' + inputdata.key, wave=output_wave, flux=output_flux, err=output_err)
+
+            inputdata.writeEcsvData(filename= path + 'resample_new/' + inputdata.key, wave=output_wave, flux=output_flux, err=output_err)
+
+
 
     print('======= Resampling Process Done =======')
         
